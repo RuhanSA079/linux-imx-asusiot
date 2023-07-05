@@ -18,7 +18,6 @@
 #include <linux/fs.h>
 #include <linux/slab.h>
 #include "eth_mac_stmmac.h"
-#include <linux/platform_data/at24.h>
 
 #if 1
 #define DBG(x...)   printk("eth_mac_stmmac:" x)
