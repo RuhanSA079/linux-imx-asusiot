@@ -2,6 +2,7 @@
 /*
  * Copyright 2017 NXP
  * Copyright (C) 2017-2018 Pengutronix, Lucas Stach <kernel@pengutronix.de>
+ * RuhanvdB -> Patch missing RS-232 and RS485 defines into one DTB
  */
 
 /dts-v1/;
@@ -850,6 +851,7 @@
 	};
 };
 
+/* Console, RS-232 */
 &uart1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart1>;
@@ -859,11 +861,14 @@
 	status = "okay";
 };
 
+/* RS-485 */
 &uart2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart2>;
 	assigned-clocks = <&clk IMX8MQ_CLK_UART2>;
 	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
+	linux,rs485-enabled-at-boot-time;
+	rts-gpios = <&gpio5 29 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
@@ -1215,7 +1220,8 @@
 			MX8MQ_IOMUXC_UART2_RXD_UART2_DCE_RX		0x49
 			MX8MQ_IOMUXC_UART2_TXD_UART2_DCE_TX		0x49
 			MX8MQ_IOMUXC_UART4_RXD_UART2_DCE_CTS_B		0x49
-			MX8MQ_IOMUXC_UART4_TXD_UART2_DCE_RTS_B		0x49
+			/*MX8MQ_IOMUXC_UART4_TXD_UART2_DCE_RTS_B		0x49*/
+			MX8MQ_IOMUXC_UART4_TXD_GPIO5_IO29               0x19
 		>;
 	};
 
