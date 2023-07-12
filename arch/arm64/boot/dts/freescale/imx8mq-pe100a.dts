@@ -109,137 +109,6 @@
 		status = "disabled";
 	};
 
-	bt_sco_codec: bt_sco_codec {
-		#sound-dai-cells = <1>;
-		compatible = "linux,bt-sco";
-	};
-
-	wm8524: audio-codec {
-		#sound-dai-cells = <0>;
-		compatible = "wlf,wm8524";
-		wlf,mute-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
-		status = "disabled";
-	};
-
-	sound-bt-sco {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "bt-sco-audio";
-		simple-audio-card,format = "dsp_a";
-		simple-audio-card,bitclock-inversion;
-		simple-audio-card,frame-master = <&btcpu>;
-		simple-audio-card,bitclock-master = <&btcpu>;
-
-		btcpu: simple-audio-card,cpu {
-			sound-dai = <&sai3>;
-			dai-tdm-slot-num = <2>;
-			dai-tdm-slot-width = <16>;
-		};
-
-		simple-audio-card,codec {
-			sound-dai = <&bt_sco_codec 1>;
-		};
-	};
-
-	sound-wm8524 {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "wm8524-audio";
-		simple-audio-card,format = "i2s";
-		simple-audio-card,frame-master = <&cpudai>;
-		simple-audio-card,bitclock-master = <&cpudai>;
-		simple-audio-card,widgets =
-			"Line", "Left Line Out Jack",
-			"Line", "Right Line Out Jack";
-		simple-audio-card,routing =
-			"Left Line Out Jack", "LINEVOUTL",
-			"Right Line Out Jack", "LINEVOUTR";
-
-		cpudai: simple-audio-card,cpu {
-			sound-dai = <&sai2>;
-			dai-tdm-slot-num = <2>;
-			dai-tdm-slot-width = <32>;
-		};
-
-		link_codec: simple-audio-card,codec {
-			sound-dai = <&wm8524>;
-			clocks = <&clk IMX8MQ_CLK_SAI2_ROOT>;
-		};
-	};
-
-	sound-hdmi {
-		compatible = "fsl,imx-audio-hdmi";
-		model = "imx-audio-hdmi";
-		audio-cpu = <&sai4>;
-		hdmi-out;
-		constraint-rate = <44100>,
-				<88200>,
-				<176400>,
-				<32000>,
-				<48000>,
-				<96000>,
-				<192000>;
-	};
-
-	sound-spdif {
-		compatible = "fsl,imx-audio-spdif";
-		model = "imx-spdif";
-		spdif-controller = <&spdif1>;
-		spdif-out;
-		spdif-in;
-	};
-
-	sound-hdmi-arc {
-		compatible = "fsl,imx-audio-spdif";
-		model = "imx-hdmi-arc";
-		spdif-controller = <&spdif2>;
-		spdif-in;
-	};
-
-	sound-ak4458 {
-		compatible = "fsl,imx-audio-card";
-		model = "ak4458-audio";
-		pri-dai-link {
-			link-name = "akcodec";
-			format = "i2s";
-			cpu {
-				sound-dai = <&sai1>;
-			};
-			codec {
-				sound-dai = <&ak4458_1>, <&ak4458_2>;
-			};
-		};
-	};
-
-	sound-ak5558 {
-		compatible = "fsl,imx-audio-card";
-		model = "ak5558-audio";
-		pri-dai-link {
-			link-name = "akcodec";
-			format = "i2s";
-			cpu {
-				sound-dai = <&sai5>;
-			};
-			codec {
-				sound-dai = <&ak5558>;
-			};
-		};
-	};
-
-	sound-ak4497 {
-		compatible = "fsl,imx-audio-card";
-		model = "ak4497-audio";
-		status = "disabled";
-		pri-dai-link {
-			link-name = "akcodec";
-			format = "i2s";
-			cpu {
-				sound-dai = <&sai1>;
-			};
-			codec {
-				sound-dai = <&ak4497>;
-			};
-		};
-	};
-
 	hwid: gpio-hwid {
 		compatible = "gpio-hwid";
 		boardinfo = "PE100A";
@@ -581,6 +450,7 @@
 		status = "disabled";
 	};
 
+/* Patch out HDMI and sound support
 	ak4458_1: ak4458@10 {
 		#sound-dai-cells = <0>;
 		sound-name-prefix = "0";
@@ -609,6 +479,7 @@
 		reset-gpios = <&gpio3 16 GPIO_ACTIVE_LOW>;
 		dsd-path = <1>;
 	};
+*/
 
 	adv_bridge: adv7535@3d {
 		compatible = "adi,adv7535";
@@ -762,7 +633,7 @@
 	assigned-clocks = <&clk IMX8MQ_CLK_SAI2>;
 	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
 	assigned-clock-rates = <24576000>;
-	status = "okay";
+	status = "disabled";
 };
 
 &sai3 {
@@ -772,7 +643,7 @@
 	assigned-clocks = <&clk IMX8MQ_CLK_SAI3>;
 	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
 	assigned-clock-rates = <24576000>;
-	status = "okay";
+	status = "disabled";
 };
 
 &sai4 {
@@ -786,7 +657,7 @@
 	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
 	fsl,sai-multi-lane;
 	dmas = <&sdma2 0 25 0>, <&sdma2 1 25 0>;
-	status = "okay";
+	status = "disabled";
 };
 
 &sai5 {
@@ -803,7 +674,7 @@
 	fsl,sai-asynchronous;
 	fsl,sai-multi-lane;
 	dmas = <&sdma2 2 25 0>, <&sdma2 3 25 0>;
-	status = "okay";
+	status = "disabled";
 };
 
 &snvs_pwrkey {
@@ -824,14 +695,14 @@
 		<&clk IMX8MQ_AUDIO_PLL1_OUT>, <&clk IMX8MQ_AUDIO_PLL2_OUT>;
 	clock-names = "core", "rxtx0", "rxtx1", "rxtx2", "rxtx3", "rxtx4",
 		      "rxtx5", "rxtx6", "rxtx7", "spba", "pll8k", "pll11k";
-	status = "okay";
+	status = "disabled";
 };
 
 &spdif2 {
 	assigned-clocks = <&clk IMX8MQ_CLK_SPDIF2>;
 	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
 	assigned-clock-rates = <24576000>;
-	status = "okay";
+	status = "disabled";
 };
 
 &qspi0 {
@@ -1357,7 +1228,7 @@
 };
 
 &dcss {
-	status = "okay";
+	status = "disabled";
 
 	port@0 {
 		dcss_out: endpoint {
@@ -1370,7 +1241,7 @@
 	compatible = "cdn,imx8mq-hdmi";
 	lane-mapping = <0xe4>;
 	hdcp-config = <0x3>;
-	status = "okay";
+	status = "disabled";
 	port@1 {
 		hdmi_in: endpoint {
 			remote-endpoint = <&dcss_out>;
