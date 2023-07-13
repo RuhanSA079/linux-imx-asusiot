@@ -738,7 +738,6 @@
 	pinctrl-0 = <&pinctrl_uart2>;
 	assigned-clocks = <&clk IMX8MQ_CLK_UART2>;
 	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
-	fsl,uart-has-rtscts;
 	linux,rs485-enabled-at-boot-time;
 	rts-gpios = <&gpio5 29 GPIO_ACTIVE_HIGH>;
 	status = "okay";
