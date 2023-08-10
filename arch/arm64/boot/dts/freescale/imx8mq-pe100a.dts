@@ -335,7 +335,6 @@
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy0>;
 	fsl,magic-packet;
-	wakeup-enable = "1";
 	status = "okay";
 
 	mdio {
@@ -623,7 +622,7 @@
 };
 
 &i2c2 {
-	clock-frequency = <100000>;
+	clock-frequency = <70000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";

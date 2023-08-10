@@ -574,6 +574,13 @@ static int rt5616_hp_event(struct snd_soc_dapm_widget *w,
 				    RT5616_RSTN_MASK | RT5616_HP_L_SMT_MASK |
 				    RT5616_HP_R_SMT_MASK, RT5616_RSTN_DIS |
 				    RT5616_HP_L_SMT_EN | RT5616_HP_R_SMT_EN);
+		/* (L+R)/2 for hp*/
+		snd_soc_component_update_bits(component, RT5616_STO_DAC_MIXER,
+				    RT5616_DAC_L1_STO_L_VOL_MASK |
+				    RT5616_DAC_R1_STO_L_VOL_MASK,
+					RT5616_DAC_L1_STO_L_VOL_MASK |
+				    RT5616_DAC_R1_STO_L_VOL_MASK);
+
 		snd_soc_component_update_bits(component, RT5616_HP_VOL,
 				    RT5616_L_MUTE | RT5616_R_MUTE, 0);
 		msleep(100);
@@ -1083,6 +1090,9 @@ static int rt5616_set_dai_sysclk(struct snd_soc_dai *dai,
 
 	snd_soc_component_update_bits(component, RT5616_GLB_CLK,
 			    RT5616_SCLK_SRC_MASK, reg_val);
+
+	snd_soc_component_write(component, RT5616_PLL_CTRL1, 0x3705);
+
 	rt5616->sysclk = freq;
 	rt5616->sysclk_src = clk_id;
 

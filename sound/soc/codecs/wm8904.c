@@ -120,8 +120,8 @@ static const struct reg_default wm8904_reg_defaults[] = {
 	{ 45,  0x0085 },     /* R45  - Analogue Right Input 0 */
 	{ 46,  0x0044 },     /* R46  - Analogue Left Input 1 */
 	{ 47,  0x0044 },     /* R47  - Analogue Right Input 1 */
-	{ 57,  0x002D },     /* R57  - Analogue OUT1 Left */
-	{ 58,  0x002D },     /* R58  - Analogue OUT1 Right */
+	{ 57,  0x0030 },     /* R57  - Analogue OUT1 Left */
+	{ 58,  0x0030 },     /* R58  - Analogue OUT1 Right */
 	{ 59,  0x0039 },     /* R59  - Analogue OUT2 Left */
 	{ 60,  0x0039 },     /* R60  - Analogue OUT2 Right */
 	{ 61,  0x0000 },     /* R61  - Analogue OUT12 ZC */
@@ -580,8 +580,9 @@ SOC_DOUBLE_R_TLV("Digital Capture Volume", WM8904_ADC_DIGITAL_VOLUME_LEFT,
 		 WM8904_ADC_DIGITAL_VOLUME_RIGHT, 1, 119, 0, digital_tlv),
 
 /* No TLV since it depends on mode */
+/* 20220725 ASUS Kengyen modify Line-In Volume to 0x1c */
 SOC_DOUBLE_R("Capture Volume", WM8904_ANALOGUE_LEFT_INPUT_0,
-	     WM8904_ANALOGUE_RIGHT_INPUT_0, 0, 31, 0),
+	     WM8904_ANALOGUE_RIGHT_INPUT_0, 0, 37, 0),
 SOC_DOUBLE_R("Capture Switch", WM8904_ANALOGUE_LEFT_INPUT_0,
 	     WM8904_ANALOGUE_RIGHT_INPUT_0, 7, 1, 1),
 
@@ -672,6 +673,13 @@ static int sysclk_event(struct snd_soc_dapm_widget *w,
 			snd_soc_component_update_bits(component, WM8904_FLL_CONTROL_1,
 					    WM8904_FLL_ENA,
 					    WM8904_FLL_ENA);
+			/* Fine tune FOUT from FLL_CLK_SOURCE_RCLK */
+			snd_soc_component_write(component, WM8904_FLL_CONTROL_1, 0x0003);
+			snd_soc_component_write(component, WM8904_FLL_CONTROL_2, 0x0703);
+			snd_soc_component_write(component, WM8904_FLL_CONTROL_3, 0x0000);
+			snd_soc_component_write(component, WM8904_FLL_CONTROL_4, 0x2000);
+			snd_soc_component_write(component, WM8904_FLL_CONTROL_5, 0x0006);
+
 			break;
 
 		default:
@@ -687,6 +695,31 @@ static int sysclk_event(struct snd_soc_dapm_widget *w,
 
 	return 0;
 }
+
+/* 20220725 ASUS Kengyen add Line-in event for IN2L +++ */
+static int in_sel_event(struct snd_soc_dapm_widget *w,
+	struct snd_kcontrol *kcontrol, int event)
+{
+	struct snd_soc_component *component = snd_soc_dapm_to_component(w->dapm);
+
+	switch (event) {
+	case SND_SOC_DAPM_POST_PMD:
+		snd_soc_component_write(component, WM8904_MIC_BIAS_CONTROL_1, 0x0000);
+		snd_soc_component_write(component, WM8904_ANALOGUE_LEFT_INPUT_1, 0x0044);
+		break;
+
+	case SND_SOC_DAPM_PRE_PMU:
+		snd_soc_component_write(component, WM8904_MIC_BIAS_CONTROL_1, 0x0003); //INL_ENA=1, INR_ENA=1
+		snd_soc_component_write(component, WM8904_ANALOGUE_LEFT_INPUT_1, 0x0054); //Select IN2L_P and IN2L_N and enable Left Input PGA
+		break;
+
+	default:
+		return 0;
+	}
+
+	return 0;
+}
+/* 20220725 ASUS Kengyen add Line-in event for IN2L --- */
 
 static int out_pga_event(struct snd_soc_dapm_widget *w,
 			 struct snd_kcontrol *kcontrol, int event)
@@ -792,6 +825,10 @@ static int out_pga_event(struct snd_soc_dapm_widget *w,
 		snd_soc_component_update_bits(component, reg,
 				    WM8904_HPL_ENA_OUTP | WM8904_HPR_ENA_OUTP,
 				    WM8904_HPL_ENA_OUTP | WM8904_HPR_ENA_OUTP);
+
+                snd_soc_component_write(component, WM8904_ANALOGUE_OUT1_LEFT, 0x00f0);
+                snd_soc_component_write(component, WM8904_ANALOGUE_OUT1_RIGHT, 0x00f0);
+
 		break;
 
 	case SND_SOC_DAPM_POST_PMU:
@@ -952,6 +989,11 @@ SND_SOC_DAPM_ADC("ADCR", NULL, WM8904_POWER_MANAGEMENT_6, 0, 0),
 SND_SOC_DAPM_MUX("AIFOUTL Mux", SND_SOC_NOPM, 0, 0, &aifoutl_mux),
 SND_SOC_DAPM_MUX("AIFOUTR Mux", SND_SOC_NOPM, 0, 0, &aifoutr_mux),
 
+/* 20220725 ASUS Kengyen add Line-in event for IN2L */
+SND_SOC_DAPM_PGA_S("AIFOUT Sel", 1, SND_SOC_NOPM, 0, 0,
+		   in_sel_event,
+		   SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
+
 SND_SOC_DAPM_AIF_OUT("AIFOUTL", "Capture", 0, SND_SOC_NOPM, 0, 0),
 SND_SOC_DAPM_AIF_OUT("AIFOUTR", "Capture", 1, SND_SOC_NOPM, 0, 0),
 };
@@ -979,7 +1021,7 @@ SND_SOC_DAPM_PGA_E("Headphone Output", SND_SOC_NOPM, WM8904_ANALOGUE_HP_0,
 		   0, NULL, 0, out_pga_event,
 		   SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMU |
 		   SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMD),
-SND_SOC_DAPM_PGA_E("Line Output", SND_SOC_NOPM, WM8904_ANALOGUE_LINEOUT_0,
+SND_SOC_DAPM_PGA_E("Line Output", SND_SOC_NOPM, WM8904_ANALOGUE_HP_0,
 		   0, NULL, 0, out_pga_event,
 		   SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMU |
 		   SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMD),
@@ -1090,8 +1132,13 @@ static const struct snd_soc_dapm_route adc_intercon[] = {
 	{ "AIFOUTR Mux", "Left", "ADCL" },
 	{ "AIFOUTR Mux", "Right", "ADCR" },
 
-	{ "AIFOUTL", NULL, "AIFOUTL Mux" },
-	{ "AIFOUTR", NULL, "AIFOUTR Mux" },
+	/* 20220725 ASUS Kengyen add Line-in event for IN2L +++ */
+	{ "AIFOUT Sel", NULL, "AIFOUTL Mux" },
+	{ "AIFOUT Sel", NULL, "AIFOUTR Mux" },
+
+	{ "AIFOUTL", NULL, "AIFOUT Sel" },
+	{ "AIFOUTR", NULL, "AIFOUT Sel" },
+	/* 20220725 ASUS Kengyen add Line-in event for IN2L --- */
 
 	{ "ADCL", NULL, "CLK_DSP" },
 	{ "ADCL", NULL, "Left Capture PGA" },
@@ -1128,8 +1175,8 @@ static const struct snd_soc_dapm_route dac_intercon[] = {
 	{ "HPOUTL", NULL, "Headphone Output" },
 	{ "HPOUTR", NULL, "Headphone Output" },
 
-	{ "LINEOUTL", NULL, "Line Output" },
-	{ "LINEOUTR", NULL, "Line Output" },
+	{ "LINEOUTL", NULL, "Headphone Output" },
+	{ "LINEOUTR", NULL, "Headphone Output" },
 };
 
 static const struct snd_soc_dapm_route wm8904_intercon[] = {
@@ -1743,12 +1790,12 @@ static int wm8904_set_fll(struct snd_soc_dai *dai, int fll_id, int source,
 				    WM8904_FLL_CLK_REF_SRC_MASK, 0);
 		break;
 
-	case WM8904_FLL_LRCLK:
+	case WM8904_FLL_BCLK:
 		snd_soc_component_update_bits(component, WM8904_FLL_CONTROL_5,
 				    WM8904_FLL_CLK_REF_SRC_MASK, 1);
 		break;
 
-	case WM8904_FLL_BCLK:
+	case WM8904_FLL_LRCLK:
 		snd_soc_component_update_bits(component, WM8904_FLL_CONTROL_5,
 				    WM8904_FLL_CLK_REF_SRC_MASK, 2);
 		break;
