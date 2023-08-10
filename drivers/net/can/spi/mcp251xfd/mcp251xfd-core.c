@@ -17,8 +17,11 @@
 #include <linux/device.h>
 #include <linux/mod_devicetable.h>
 #include <linux/module.h>
+#include <linux/netdevice.h>
 #include <linux/pm_runtime.h>
 #include <linux/property.h>
+#include <linux/of_gpio.h>
+#include <linux/gpio.h>
 
 #include <asm/unaligned.h>
 
@@ -2530,8 +2533,8 @@ static int mcp251xfd_open(struct net_device *ndev)
 	can_rx_offload_enable(&priv->offload);
 
 	err = request_threaded_irq(spi->irq, NULL, mcp251xfd_irq,
-				   IRQF_SHARED | IRQF_ONESHOT,
-				   dev_name(&spi->dev), priv);
+				   IRQF_ONESHOT | IRQF_TRIGGER_FALLING, dev_name(&spi->dev),
+				   priv);
 	if (err)
 		goto out_can_rx_offload_disable;
 
@@ -2865,10 +2868,34 @@ static int mcp251xfd_probe(struct spi_device *spi)
 	struct clk *clk;
 	u32 freq = 0;
 	int err;
+	struct device_node *np;
+	int standby_gpio, irq_gpio;
+	int ret;
+	int irq;
 
 	if (!spi->irq)
 		return dev_err_probe(&spi->dev, -ENXIO,
 				     "No IRQ specified (maybe node \"interrupts-extended\" in DT missing)!\n");
+
+	/* Add IRQ pin control */
+	np = spi->dev.of_node;
+	if (np) {
+		irq_gpio = of_get_named_gpio(np, "irq-gpio", 0);
+		dev_info(&spi->dev, "can irq gpio=%d\n", irq_gpio);
+		if (gpio_is_valid(irq_gpio)) {
+			ret = devm_gpio_request_one(&spi->dev, irq_gpio, GPIOF_DIR_IN, "can_int");
+			if (ret) {
+				dev_err(&spi->dev, "unable to get can irq gpio\n");
+			} else {
+				irq = gpio_to_irq(irq_gpio);
+				spi->irq = irq;
+			}
+		}
+
+		device_set_wakeup_capable(&spi->dev, true);
+		if (of_property_read_bool(np, "wakeup-source"))
+			device_set_wakeup_enable(&spi->dev, true);
+    }
 
 	rx_int = devm_gpiod_get_optional(&spi->dev, "microchip,rx-int",
 					 GPIOD_IN);
@@ -2918,6 +2945,19 @@ static int mcp251xfd_probe(struct spi_device *spi)
 			"Oscillator frequency (%u Hz) is too low and PLL is not supported.\n",
 			freq);
 		return -ERANGE;
+	}
+
+	/* Add Standy pin control */
+	np = spi->dev.of_node;
+	if (np) {
+		standby_gpio = of_get_named_gpio(np, "standby-gpios", 0);
+		dev_info(&spi->dev, "can bus standby gpio=%d, freq=%d\n", standby_gpio, freq);
+		if (gpio_is_valid(standby_gpio)) {
+			ret = devm_gpio_request_one(&spi->dev, standby_gpio, GPIOF_OUT_INIT_LOW, "CAN standby");
+			if (ret) {
+				dev_err(&spi->dev, "unable to get can standby gpio\n");
+			}
+		}
 	}
 
 	ndev = alloc_candev(sizeof(struct mcp251xfd_priv),
@@ -3042,7 +3082,34 @@ static int __maybe_unused mcp251xfd_runtime_resume(struct device *device)
 	return mcp251xfd_clks_and_vdd_enable(priv);
 }
 
+static int __maybe_unused mcp251xfd_suspend(struct device *device)
+{
+	const struct mcp251xfd_priv *priv = dev_get_drvdata(device);
+	struct net_device *dev = priv->ndev;
+
+	dev_dbg(device, "%s\n", __func__);
+	if (netif_running(dev) && device_may_wakeup(device)) {
+		enable_irq_wake(dev->irq);
+		pr_debug("%s Suspend\n", dev->name);
+	}
+	return 0;
+}
+
+static int __maybe_unused mcp251xfd_resume(struct device *device)
+{
+	const struct mcp251xfd_priv *priv = dev_get_drvdata(device);
+	struct net_device *dev = priv->ndev;
+
+	dev_dbg(device, "%s\n", __func__);
+	if (netif_running(dev) && device_may_wakeup(device)) {
+		disable_irq_wake(dev->irq);
+		pr_debug("%s Resume\n", dev->name);
+	}
+	return 0;
+}
+
 static const struct dev_pm_ops mcp251xfd_pm_ops = {
+	SET_SYSTEM_SLEEP_PM_OPS(mcp251xfd_suspend, mcp251xfd_resume)
 	SET_RUNTIME_PM_OPS(mcp251xfd_runtime_suspend,
 			   mcp251xfd_runtime_resume, NULL)
 };

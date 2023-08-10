@@ -113,28 +113,7 @@
 		status = "disabled";
 	};
 
-	wm8524: audio-codec {
-		#sound-dai-cells = <0>;
-		compatible = "wlf,wm8524";
-		wlf,mute-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
-		status = "disabled";
-	};
 
-	sound-ak4497 {
-		compatible = "fsl,imx-audio-card";
-		model = "ak4497-audio";
-		status = "disabled";
-		pri-dai-link {
-			link-name = "akcodec";
-			format = "i2s";
-			cpu {
-				sound-dai = <&sai1>;
-			};
-			codec {
-				sound-dai = <&ak4497>;
-			};
-		};
-	};
 
 	hwid: gpio-hwid {
 		compatible = "gpio-hwid";
@@ -149,6 +128,45 @@
 	platform-reset {
 		compatible = "platform-reset";
 		reset-gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+	};
+
+	gpio_leds: gpio-leds {
+		compatible = "gpio-leds";
+
+		act-led {
+			gpios = <&gpio3 6 GPIO_ACTIVE_LOW>;
+			linux,default-trigger="mmc0";
+		};
+
+		wifi-led-r {
+			gpios = <&gpio3 7 GPIO_ACTIVE_LOW>;
+			linux,default-trigger="wifi-r";
+		};
+
+		wifi-led-g {
+			gpios = <&gpio3 8 GPIO_ACTIVE_LOW>;
+			linux,default-trigger="wifi-g";
+		};
+
+		lte-led-r {
+			gpios = <&gpio3 9 GPIO_ACTIVE_LOW>;
+			linux,default-trigger="lte-r";
+		};
+
+		lte-led-g {
+			gpios = <&gpio3 10 GPIO_ACTIVE_LOW>;
+			linux,default-trigger="lte-g";
+		};
+
+		gps-led-r {
+			gpios = <&gpio3 11 GPIO_ACTIVE_LOW>;
+			linux,default-trigger="gps-r";
+		};
+
+		gps-led-g {
+			gpios = <&gpio3 12 GPIO_ACTIVE_LOW>;
+			linux,default-trigger="gps-g";
+		};
 	};
 };
 
@@ -229,7 +247,6 @@
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy0>;
 	fsl,magic-packet;
-	wakeup-enable = "1";
 	status = "okay";
 
 	mdio {
@@ -287,6 +304,14 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = "okay";
+
+	rt5616: rt5616@1b {
+		compatible = "realtek,rt5616";
+		reg = <0x1b>;
+		clocks = <&clk IMX8MQ_CLK_SAI2_ROOT>;
+		clock-names = "mclk1";
+		status = "okay";
+	};
 
 	ov5640_mipi2: ov5640_mipi2@3c {
 		compatible = "ovti,ov5640_mipi";
@@ -463,39 +488,6 @@
 		status = "disabled";
 	};
 
-	ak4458_1: ak4458@10 {
-		#sound-dai-cells = <0>;
-		sound-name-prefix = "0";
-		compatible = "asahi-kasei,ak4458";
-		reg = <0x10>;
-		status = "disabled";
-	};
-
-	ak4458_2: ak4458@12 {
-		#sound-dai-cells = <0>;
-		sound-name-prefix = "1";
-		compatible = "asahi-kasei,ak4458";
-		reg = <0x12>;
-		status = "disabled";
-	};
-
-	ak5558: ak5558@13 {
-		#sound-dai-cells = <0>;
-		compatible = "asahi-kasei,ak5558";
-		reg = <0x13>;
-		reset-gpios = <&gpio3 17 GPIO_ACTIVE_LOW>;
-		status = "disabled";
-	};
-
-	ak4497: ak4497@11 {
-		#sound-dai-cells = <0>;
-		compatible = "asahi-kasei,ak4497";
-		reg = <0x11>;
-		reset-gpios = <&gpio3 16 GPIO_ACTIVE_LOW>;
-		dsd-path = <1>;
-		status = "disabled";
-	};
-
 	adv_bridge: adv7535@3d {
 		compatible = "adi,adv7535";
 		reg = <0x3d>;
@@ -515,7 +507,7 @@
 };
 
 &i2c2 {
-	clock-frequency = <100000>;
+	clock-frequency = <70000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
@@ -708,30 +700,6 @@
 	status = "okay";
 };
 
-&spdif1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_spdif1>;
-	assigned-clocks = <&clk IMX8MQ_CLK_SPDIF1>;
-	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
-	assigned-clock-rates = <24576000>;
-	clocks = <&clk IMX8MQ_CLK_IPG_ROOT>, <&clk IMX8MQ_CLK_25M>,
-		<&clk IMX8MQ_CLK_SPDIF1>, <&clk IMX8MQ_CLK_DUMMY>,
-		<&clk IMX8MQ_CLK_DUMMY>, <&clk IMX8MQ_CLK_DUMMY>,
-		<&clk IMX8MQ_CLK_IPG_ROOT>, <&clk IMX8MQ_CLK_DUMMY>,
-		<&clk IMX8MQ_CLK_DUMMY>, <&clk IMX8MQ_CLK_DUMMY>,
-		<&clk IMX8MQ_AUDIO_PLL1_OUT>, <&clk IMX8MQ_AUDIO_PLL2_OUT>;
-	clock-names = "core", "rxtx0", "rxtx1", "rxtx2", "rxtx3", "rxtx4",
-		      "rxtx5", "rxtx6", "rxtx7", "spba", "pll8k", "pll11k";
-	status = "disabled";
-};
-
-&spdif2 {
-	assigned-clocks = <&clk IMX8MQ_CLK_SPDIF2>;
-	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
-	assigned-clock-rates = <24576000>;
-	status = "disabled";
-};
-
 &qspi0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_qspi>;
@@ -774,6 +742,14 @@
 	fsl,uart-has-rtscts;
 	resets = <&modem_reset>;
 	status = "disabled";
+};
+
+&uart4 { /* GPS */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart4>;
+	assigned-clocks = <&clk IMX8MQ_CLK_UART4>;
+	assigned-clock-parents = <&clk IMX8MQ_SYS1_PLL_80M>;
+	status = "okay";
 };
 
 &usb3_phy0 {
@@ -856,6 +832,13 @@
 			MX8MQ_IOMUXC_SAI3_RXD_GPIO4_IO30		0x19
 			MX8MQ_IOMUXC_SAI3_TXFS_GPIO4_IO31		0x19
 			MX8MQ_IOMUXC_GPIO1_IO08_GPIO1_IO8		0x19 /* S_PLTRST */
+			MX8MQ_IOMUXC_NAND_DATA00_GPIO3_IO6		0x19
+			MX8MQ_IOMUXC_NAND_DATA01_GPIO3_IO7		0x19
+			MX8MQ_IOMUXC_NAND_DATA02_GPIO3_IO8		0x19
+			MX8MQ_IOMUXC_NAND_DATA03_GPIO3_IO9		0x19
+			MX8MQ_IOMUXC_NAND_DATA04_GPIO3_IO10		0x19
+			MX8MQ_IOMUXC_NAND_DATA05_GPIO3_IO11		0x19
+			MX8MQ_IOMUXC_NAND_DATA06_GPIO3_IO12		0x19
 		>;
 	};
 
@@ -1013,6 +996,7 @@
 			MX8MQ_IOMUXC_SAI2_TXC_SAI2_TX_BCLK      0xd6
 			MX8MQ_IOMUXC_SAI2_MCLK_SAI2_MCLK        0xd6
 			MX8MQ_IOMUXC_SAI2_TXD0_SAI2_TX_DATA0    0xd6
+			MX8MQ_IOMUXC_SAI2_RXD0_SAI2_RX_DATA0    0xd6
 		>;
 	};
 
@@ -1120,8 +1104,6 @@
 		fsl,pins = <
 			MX8MQ_IOMUXC_UART2_RXD_UART2_DCE_RX		0x49
 			MX8MQ_IOMUXC_UART2_TXD_UART2_DCE_TX		0x49
-			MX8MQ_IOMUXC_UART4_RXD_UART2_DCE_CTS_B		0x49
-			MX8MQ_IOMUXC_UART4_TXD_UART2_DCE_RTS_B		0x49
 		>;
 	};
 
@@ -1132,6 +1114,13 @@
 			MX8MQ_IOMUXC_ECSPI1_MISO_UART3_DCE_CTS_B	0x49
 			MX8MQ_IOMUXC_ECSPI1_SS0_UART3_DCE_RTS_B		0x49
 			MX8MQ_IOMUXC_NAND_CLE_GPIO3_IO5			0x19
+		>;
+	};
+
+	pinctrl_uart4: uart4grp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_UART4_TXD_UART4_DCE_TX		0x49
+			MX8MQ_IOMUXC_UART4_RXD_UART4_DCE_RX		0x49
 		>;
 	};
 
