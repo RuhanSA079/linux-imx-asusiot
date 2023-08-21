@@ -575,7 +575,7 @@
 	hard-wired = <1>;
 	//vph-supply = <&vgen5_reg>;
 	l1ss-disabled;
-	status = "disabled";
+	status = "okay";
 };
 
 &pcie1 {
@@ -593,7 +593,7 @@
 				 <&clk IMX8MQ_SYS2_PLL_250M>;
 	//vph-supply = <&vgen5_reg>;
 	l1ss-disabled;
-	status = "disabled";
+	status = "okay";
 
 	wifi_wake_host {
 		compatible = "nxp,wifi-wake-host";
