@@ -2,7 +2,6 @@
 /*
  * Copyright 2017 NXP
  * Copyright (C) 2017-2018 Pengutronix, Lucas Stach <kernel@pengutronix.de>
- * RuhanvdB -> Patchout HDMI, sound.
  */
 
 /dts-v1/;
@@ -110,10 +109,47 @@
 	bt_sco_codec: bt_sco_codec {
 		#sound-dai-cells = <1>;
 		compatible = "linux,bt-sco";
-		status = "disabled";
 	};
 
+	sound-bt-sco {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "bt-sco-audio";
+		simple-audio-card,format = "dsp_a";
+		simple-audio-card,bitclock-inversion;
+		simple-audio-card,frame-master = <&btcpu>;
+		simple-audio-card,bitclock-master = <&btcpu>;
 
+		btcpu: simple-audio-card,cpu {
+			sound-dai = <&sai3>;
+			dai-tdm-slot-num = <2>;
+			dai-tdm-slot-width = <16>;
+		};
+
+		simple-audio-card,codec {
+			sound-dai = <&bt_sco_codec 1>;
+		};
+	};
+
+	sound-hdmi {
+		compatible = "fsl,imx-audio-hdmi";
+		model = "imx-audio-hdmi";
+		audio-cpu = <&sai4>;
+		hdmi-out;
+		constraint-rate = <44100>,
+				<88200>,
+				<176400>,
+				<32000>,
+				<48000>,
+				<96000>,
+				<192000>;
+	};
+
+	sound-rt5616 {
+		compatible = "asus,pv100a-audio-card";
+		audio-cpu = <&sai2>;
+		audio-codec = <&rt5616>;
+		status = "okay";
+	};
 
 	hwid: gpio-hwid {
 		compatible = "gpio-hwid";
@@ -652,7 +688,7 @@
 	assigned-clocks = <&clk IMX8MQ_CLK_SAI2>;
 	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
 	assigned-clock-rates = <24576000>;
-	status = "disabled";
+	status = "okay";
 };
 
 &sai3 {
@@ -662,7 +698,7 @@
 	assigned-clocks = <&clk IMX8MQ_CLK_SAI3>;
 	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
 	assigned-clock-rates = <24576000>;
-	status = "disabled";
+	status = "okay";
 };
 
 &sai4 {
@@ -676,7 +712,7 @@
 	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
 	fsl,sai-multi-lane;
 	dmas = <&sdma2 0 25 0>, <&sdma2 1 25 0>;
-	status = "disabled";
+	status = "okay";
 };
 
 &sai5 {
@@ -693,7 +729,7 @@
 	fsl,sai-asynchronous;
 	fsl,sai-multi-lane;
 	dmas = <&sdma2 2 25 0>, <&sdma2 3 25 0>;
-	status = "disabled";
+	status = "okay";
 };
 
 &snvs_pwrkey {
@@ -1275,7 +1311,7 @@
 	compatible = "cdn,imx8mq-hdmi";
 	lane-mapping = <0xe4>;
 	hdcp-config = <0x3>;
-	status = "disabled";
+	status = "okay";
 	port@1 {
 		hdmi_in: endpoint {
 			remote-endpoint = <&dcss_out>;
