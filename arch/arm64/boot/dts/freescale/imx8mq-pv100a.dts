@@ -739,7 +739,7 @@
 &qspi0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_qspi>;
-	status = "okay";
+	status = "disabled";
 
 	flash0: n25q256a@0 {
 		reg = <0>;
