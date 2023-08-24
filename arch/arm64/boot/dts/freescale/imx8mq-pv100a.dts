@@ -218,6 +218,10 @@
 		sku1-gpios = <&gpio4 30 GPIO_ACTIVE_HIGH>;
 		sku2-gpios = <&gpio4 31 GPIO_ACTIVE_HIGH>;
 	};
+	platform-reset {
+		compatible = "platform-reset";
+		reset-gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+	};
 };
 
 &A53_0 {
