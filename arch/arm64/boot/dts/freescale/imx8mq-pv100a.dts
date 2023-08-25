@@ -13,13 +13,13 @@
 	model = "ASUS PV100A";
 	compatible = "fsl,imx8mq-evk", "fsl,imx8mq";
 
-        aliases {
-                rtc0 = &snvs_rtc;
-        };
-
 	chosen {
 		stdout-path = &uart1;
 	};
+
+        aliases {
+                rtc0 = &snvs_rtc;
+        };
 
 	memory@40000000 {
 		device_type = "memory";
@@ -87,6 +87,7 @@
 		enable-active-high;
 	};
 
+	//Keep as-is
 	gpio-keys {
 		compatible = "gpio-keys";
 		wakeup {
@@ -106,9 +107,11 @@
 		status = "disabled";
 	};
 
+	//Keep as-is
 	bt_sco_codec: bt_sco_codec {
 		#sound-dai-cells = <1>;
 		compatible = "linux,bt-sco";
+		status = "disabled";
 	};
 
 	sound-bt-sco {
@@ -118,7 +121,7 @@
 		simple-audio-card,bitclock-inversion;
 		simple-audio-card,frame-master = <&btcpu>;
 		simple-audio-card,bitclock-master = <&btcpu>;
-
+		status = "disabled";
 		btcpu: simple-audio-card,cpu {
 			sound-dai = <&sai3>;
 			dai-tdm-slot-num = <2>;
@@ -130,9 +133,11 @@
 		};
 	};
 
+	//Disabled
 	sound-hdmi {
 		compatible = "fsl,imx-audio-hdmi";
 		model = "imx-audio-hdmi";
+		status = "disabled";
 		audio-cpu = <&sai4>;
 		hdmi-out;
 		constraint-rate = <44100>,
@@ -144,11 +149,12 @@
 				<192000>;
 	};
 
+	//Disabled
 	sound-rt5616 {
 		compatible = "asus,pv100a-audio-card";
 		audio-cpu = <&sai2>;
 		audio-codec = <&rt5616>;
-		status = "okay";
+		status = "disabled";
 	};
 
 	hwid: gpio-hwid {
@@ -160,12 +166,14 @@
 		sku1-gpios = <&gpio4 30 GPIO_ACTIVE_HIGH>;
 		sku2-gpios = <&gpio4 31 GPIO_ACTIVE_HIGH>;
 	};
-	
+
+	//Keep as-is
 	platform-reset {
 		compatible = "platform-reset";
 		reset-gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
 	};
 
+	//Keep as-is
 	gpio_leds: gpio-leds {
 		compatible = "gpio-leds";
 
@@ -206,6 +214,7 @@
 	};
 };
 
+//Keep as-is.
 &ocotp {
 	read-only;
 };
@@ -226,6 +235,7 @@
 	cpu-supply = <&buck2>;
 };
 
+//Disabled
 &csi1_bridge {
 	fsl,mipi-mode;
 	fsl,two-8bit-sensor-mode;
@@ -238,6 +248,7 @@
 	};
 };
 
+//Disabled
 &csi2_bridge {
 	fsl,mipi-mode;
 	fsl,two-8bit-sensor-mode;
@@ -277,6 +288,7 @@
 	};
 };
 
+//Fixup from 5.10
 &fec1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_fec1>;
@@ -292,15 +304,12 @@
 		ethphy0: ethernet-phy@0 {
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <0>;
-			qca,disable-smarteee;
-			vddio-supply = <&vddh>;
-
-			vddh: vddh-regulator {
-			};
+			at803x,eee-disabled;
 		};
 	};
 };
 
+//Disabled
 &mipi_csi_1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -318,6 +327,7 @@
 	};
 };
 
+//Disabled
 &mipi_csi_2 {
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -341,14 +351,16 @@
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = "okay";
 
+	//Disable sound codec
 	rt5616: rt5616@1b {
 		compatible = "realtek,rt5616";
 		reg = <0x1b>;
 		clocks = <&clk IMX8MQ_CLK_SAI2_ROOT>;
 		clock-names = "mclk1";
-		status = "okay";
+		status = "disabled";
 	};
 
+	//Disabled mipi interface i2c
 	ov5640_mipi2: ov5640_mipi2@3c {
 		compatible = "ovti,ov5640_mipi";
 		reg = <0x3c>;
@@ -371,6 +383,7 @@
 		};
 	};
 
+	//Keep as-is.
 	pmic: bd71837@4b {
 		compatible = "rohm,bd71837";
 		reg = <0x4b>;
@@ -507,6 +520,7 @@
 	};
 };
 
+//Keep as-is
 &i2c3 {
 	clock-frequency = <100000>;
 	pinctrl-names = "default";
@@ -542,6 +556,7 @@
 	};
 };
 
+//Keep as-is
 &i2c2 {
 	clock-frequency = <70000>;
 	pinctrl-names = "default";
@@ -663,6 +678,7 @@
 	power-supply = <&buck4>;
 };
 
+//Disabled
 &sai1 {
 	pinctrl-names = "default", "pcm_b2m", "dsd";
 	pinctrl-0 = <&pinctrl_sai1_pcm>;
@@ -688,9 +704,10 @@
 	assigned-clocks = <&clk IMX8MQ_CLK_SAI2>;
 	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
 	assigned-clock-rates = <24576000>;
-	status = "okay";
+	status = "disabled";
 };
 
+//BT SCO SAI
 &sai3 {
 	#sound-dai-cells = <0>;
 	pinctrl-names = "default";
@@ -698,9 +715,10 @@
 	assigned-clocks = <&clk IMX8MQ_CLK_SAI3>;
 	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
 	assigned-clock-rates = <24576000>;
-	status = "okay";
+	status = "disabled";
 };
 
+//HDMI SAI
 &sai4 {
 	assigned-clocks = <&clk IMX8MQ_CLK_SAI4>;
 	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
@@ -712,9 +730,10 @@
 	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
 	fsl,sai-multi-lane;
 	dmas = <&sdma2 0 25 0>, <&sdma2 1 25 0>;
-	status = "okay";
+	status = "disabled";
 };
 
+//Unknown SAI definition, disabled
 &sai5 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_sai5>;
@@ -729,13 +748,15 @@
 	fsl,sai-asynchronous;
 	fsl,sai-multi-lane;
 	dmas = <&sdma2 2 25 0>, <&sdma2 3 25 0>;
-	status = "okay";
+	status = "disabled";
 };
 
+//Keep as-is
 &snvs_pwrkey {
 	status = "okay";
 };
 
+// NOR flash, related to?
 &qspi0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_qspi>;
@@ -753,14 +774,17 @@
 	};
 };
 
+//Enable RS-232 flow control on COM1?
 &uart1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart1>;
 	assigned-clocks = <&clk IMX8MQ_CLK_UART1>;
 	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
+	fsl,uart-has-rtscts;
 	status = "okay";
 };
 
+//???
 &uart2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart2>;
@@ -770,6 +794,7 @@
 	status = "okay";
 };
 
+// Bluetooth UART controller. (needs firmware), disabled
 &uart3 { /* BT */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart3>;
@@ -780,6 +805,7 @@
 	status = "disabled";
 };
 
+//Where does this fit in??
 &uart4 { /* GPS */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart4>;
@@ -788,10 +814,12 @@
 	status = "okay";
 };
 
+//Hum, why is this not working? USB type-C interface
 &usb3_phy0 {
 	status = "okay";
 };
 
+//USB type-C interface
 &usb_dwc3_0 {
 	dr_mode = "otg";
 	extcon = <&it5201>;
@@ -806,18 +834,21 @@
 	};
 };
 
+//Host mode
 &usb3_phy1 {
 	status = "okay";
 };
 
+//USB hub?
 &usb_dwc3_1 {
 	dr_mode = "host";
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_usb_dwc3_1>;
-	hub-reset-gpios = <&gpio3 13 GPIO_ACTIVE_HIGH>;
+	//pinctrl-names = "default";
+	//pinctrl-0 = <&pinctrl_usb_dwc3_1>;
+	//hub-reset-gpios = <&gpio3 13 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
+//Keep as-is!
 &usdhc1 {
 	assigned-clocks = <&clk IMX8MQ_CLK_USDHC1>;
 	assigned-clock-rates = <400000000>;
@@ -833,6 +864,7 @@
 	status = "okay";
 };
 
+//Keep as-is!
 &usdhc2 {
 	assigned-clocks = <&clk IMX8MQ_CLK_USDHC2>;
 	assigned-clock-rates = <200000000>;
@@ -1282,7 +1314,7 @@
 };
 
 &dcss {
-	status = "okay";
+	status = "disabled";
 
 	port@0 {
 		dcss_out: endpoint {
@@ -1291,11 +1323,12 @@
 	};
 };
 
+//Disable HDMI
 &hdmi {
 	compatible = "cdn,imx8mq-hdmi";
 	lane-mapping = <0xe4>;
 	hdcp-config = <0x3>;
-	status = "okay";
+	status = "disabled";
 	port@1 {
 		hdmi_in: endpoint {
 			remote-endpoint = <&dcss_out>;
@@ -1303,6 +1336,7 @@
 	};
 };
 
+//Keep as-is
 &ecspi1 {
 	fsl,spi-num-chipselects = <1>;
 	pinctrl-names = "default";
@@ -1321,6 +1355,7 @@
 	};
 };
 
+//Kepp as-is
 &ecspi2 {
 	fsl,spi-num-chipselects = <1>;
 	pinctrl-names = "default";
