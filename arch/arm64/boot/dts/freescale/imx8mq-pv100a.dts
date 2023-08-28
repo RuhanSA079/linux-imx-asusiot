@@ -17,9 +17,10 @@
                 rtc0 = &snvs_rtc;
         };
 
-	chosen {
-		stdout-path = &uart1;
-	};
+	//Disable kernel output, will only happen on Ubuntu install
+	//chosen {
+	//	stdout-path = &uart1;
+	//};
 
 	memory@40000000 {
 		device_type = "memory";
