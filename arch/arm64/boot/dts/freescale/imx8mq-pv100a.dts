@@ -135,6 +135,7 @@
 		model = "imx-audio-hdmi";
 		audio-cpu = <&sai4>;
 		hdmi-out;
+		status = "disabled";
 		constraint-rate = <44100>,
 				<88200>,
 				<176400>,
@@ -148,7 +149,7 @@
 		compatible = "asus,pv100a-audio-card";
 		audio-cpu = <&sai2>;
 		audio-codec = <&rt5616>;
-		status = "okay";
+		status = "disabled";
 	};
 
 	hwid: gpio-hwid {
@@ -729,7 +730,7 @@
 	fsl,sai-asynchronous;
 	fsl,sai-multi-lane;
 	dmas = <&sdma2 2 25 0>, <&sdma2 3 25 0>;
-	status = "okay";
+	status = "disabled";
 };
 
 &snvs_pwrkey {
@@ -739,7 +740,7 @@
 &qspi0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_qspi>;
-	status = "okay";
+	status = "disabled";
 
 	flash0: n25q256a@0 {
 		reg = <0>;
