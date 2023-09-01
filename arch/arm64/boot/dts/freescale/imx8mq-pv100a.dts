@@ -762,7 +762,7 @@
 	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
 	linux,rs485-enabled-at-boot-time;
 	rs485-rts-active-low;
-	rts-gpios = <&gpio5 27 GPIO_ACTIVE_LOW>;
+	rts-gpios = <&gpio5 27 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
